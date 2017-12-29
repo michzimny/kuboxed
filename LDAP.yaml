@@ -9,7 +9,7 @@ metadata:
 spec:
   restartPolicy: Always
   nodeSelector:
-    nodeApp: *name
+    nodeApp: eos-mgm
   containers:
   - name: ldap
     image: gitlab-registry.cern.ch/cernbox/boxedhub/ldap:v0

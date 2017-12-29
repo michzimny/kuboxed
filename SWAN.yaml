@@ -82,9 +82,7 @@ spec:
         - name: HTTPS_PORT
           value: "443"
         - name: HOSTNAME            # Assume JupyterHub is exposed directly on the host where it runs
-          valueFrom:                # No Kubernetes services defined
-            fieldRef:               # Entrypoint will be: https://<nodeName>
-              fieldPath: spec.nodeName
+          value: swan.test.up2university.eu
         - name: AUTH_TYPE
           value: "local"
         - name: LDAP_ENDPOINT
@@ -267,27 +265,3 @@ spec:
         hostPath:
           path: /cvmfs
 
----
-### SERVICE ###
-# Note: Only needed when hostNetwork is not used, 
-#       otherwise JupyterHub is directly accessible on {HTTP, HTTPS}_PORTS
-apiVersion: v1
-kind: Service
-metadata:
-  name: &name swan
-  namespace: &namespace boxed
-spec:
-  selector:
-    app: *name
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 80
-    nodePort: 30081
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
-    nodePort: 30444
-  type: NodePort
