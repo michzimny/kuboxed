@@ -1,11 +1,30 @@
 ### SWAN ###
+#
+# SWAN service
+# Deploys:
+#  * JupyterHub to spawn, manage, and proxy multiple Jupyter sessions for single users
+#  * EOS client for fuse-mounting user's home directory
+#  * CVMFS client to fetch scientific libraries on-demand
+#
+# NOTE: SWAN requires access to the Kubernetes cluster resources and the ability 
+#	to list and start containers in the namespace where it is deployed.
+#	In order to achieve this, please review your cluster configuration and, if needed, 
+#	configure the default service account for the namespace as an admin of the cluster.
+#	
+#	Example with namespace "boxed":
+#       `kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=boxed:default`
+###
+
 
 ###
-# Deployment with KubeSpawner and an independent CVMFS clients on each worker node
-# I.e., nodes where single-user servers can be executed
+# Deployment with KubeSpawner and an independent CVMFS client on each worker node,
+# i.e., nodes where single-user servers can be executed
 #
 # The deployment with a cluster-level SQUID proxy should be preferred
 ###
+
+
+### PODS ###
 
 # Jupyterhub -- Deployment
 apiVersion: apps/v1beta1
@@ -77,14 +96,16 @@ spec:
           value: "JUPYTERHUB"
         - name: DEPLOYMENT_TYPE
           value: "kubespawner"
+        #- name: HOSTNAME                 # Use this configuration only if the linux hostname matches the chosen domain name
+        #  valueFrom:                     # at the DNS (e.g., no aliases are defined)
+        #    fieldRef:                    # Otherwise, please specify manually the hostname below. 
+        #      fieldPath: spec.nodeName
+        - name: HOSTNAME                 # Assume JupyterHub is exposed via hostNetwork on the node where it runs
+          value: "up2kube-swan.cern.ch"  # URL to reach SWAN will be: https://<HOSTNAME>
         - name: HTTP_PORT
           value: "80"
         - name: HTTPS_PORT
           value: "443"
-        - name: HOSTNAME            # Assume JupyterHub is exposed directly on the host where it runs
-          valueFrom:                # No Kubernetes services defined
-            fieldRef:               # Entrypoint will be: https://<nodeName>
-              fieldPath: spec.nodeName
         - name: AUTH_TYPE
           value: "local"
         - name: LDAP_ENDPOINT
@@ -129,7 +150,7 @@ spec:
 # Note: Deploy EOS Fuse and CVMFS daemons on all the nodes where
 #       single-user sessions can land. Such nodes are identified
 #       via NodeSelector key-value provided by Kubernetes.
-#       E.g., nodeApp: swan-users
+#       Default is: "nodeApp: swan-users"
 #
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -269,25 +290,31 @@ spec:
 
 ---
 ### SERVICE ###
-# Note: Only needed when hostNetwork is not used, 
-#       otherwise JupyterHub is directly accessible on {HTTP, HTTPS}_PORTS
-apiVersion: v1
-kind: Service
-metadata:
-  name: &name swan
-  namespace: &namespace boxed
-spec:
-  selector:
-    app: *name
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 80
-    nodePort: 30081
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
-    nodePort: 30444
-  type: NodePort
+# NOTE: A kubernetes service to access SWAN in only needed when 
+#	hostNetwork connectivity is not enabled on the cluster node
+#	where jupyterhub runs.
+#	Otherwise, JupyterHub is directly accessible on {HTTP, HTTPS}_PORTS
+#
+# Below, an example of NodePort service that uses the Kubernetes master
+# as a gateway for SWAN via ports 30080 and 30443.
+#
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: &name swan
+#  namespace: &namespace boxed
+#spec:
+#  selector:
+#    app: *name
+#  ports:
+#  - name: http
+#    protocol: TCP
+#    port: 80
+#    targetPort: 80
+#    nodePort: 30080
+#  - name: https
+#    protocol: TCP
+#    port: 443
+#    targetPort: 443
+#    nodePort: 30443
+#  type: NodePort
