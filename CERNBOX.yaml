@@ -211,7 +211,7 @@ spec:
         - name: DEPLOYMENT_TYPE
           value: "kubernetes"
         - name: CERNBOXGATEWAY_HOSTNAME         # Hostname of the proxy cernboxgateway
-          value: "cernbox2.test.up2university.eu"      # It has to match the name of the machine where the proxy is deployed by kubernetes!
+          value: "cernbox.test.up2university.eu"      # It has to match the name of the machine where the proxy is deployed by kubernetes!
         - name: EOS_MGM_ALIAS
           value: "eos-mgm.eos-mgm.boxed.svc.cluster.local"
         - name: LDAP_ENDPOINT
@@ -319,7 +319,7 @@ spec:
         #    fieldRef:                       # Otherwise, please specify manually the hostname below.
         #      fieldPath: spec.nodeName
         - name: HOSTNAME                    # Assume the gateway is exposed via hostNetwork on the node where it runs
-          value: "cernbox2.test.up2university.eu"  # URL to reach CERNBox will be: https://<HOSTNAME>
+          value: "cernbox.test.up2university.eu"  # URL to reach CERNBox will be: https://<HOSTNAME>
         - name: HTTP_PORT
           value: "80"
         - name: HTTPS_PORT
