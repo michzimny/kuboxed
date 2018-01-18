@@ -23,13 +23,6 @@ OS_RELEASE="/etc/os-release"
 
 # ----- Functions ----- #
 
-# Disable SELinux if needed
-disable_selinux ()
-{
-    test $(getenforce) == "Disabled" || setenforce 0
-}
-
-
 # Check to be root
 need_root ()
 {
@@ -37,6 +30,14 @@ need_root ()
     echo "Please run as root"
     exit 1
   fi
+}
+
+
+
+# Disable SELinux if needed
+disable_selinux ()
+{
+  test $(getenforce) == "Disabled" || setenforce 0
 }
 
 
